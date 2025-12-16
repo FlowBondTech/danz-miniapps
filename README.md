@@ -34,7 +34,7 @@ Each miniapp deploys as a separate Netlify site:
 
 | App | Netlify Site | Base Directory |
 |-----|--------------|----------------|
-| Daily DANZ | daily-danz.netlify.app | `daily-danz` |
+| Daily DANZ | dailydanz.netlify.app | `daily-danz` |
 | DANZ Main | danz-main.netlify.app | `danz-main` |
 
 ## Environment Variables
@@ -44,7 +44,7 @@ Set in Netlify Dashboard for each site:
 **Required:**
 ```
 NEXT_PUBLIC_API_URL=https://api.danz.xyz/graphql
-NEXT_PUBLIC_MINIAPP_URL=https://your-site.netlify.app
+NEXT_PUBLIC_MINIAPP_URL=https://dailydanz.netlify.app
 NEXT_PUBLIC_CHAIN_ID=8453
 ```
 
