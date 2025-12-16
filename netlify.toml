@@ -1,5 +1,4 @@
 # Netlify Configuration for Daily DANZ Miniapp
-# In Netlify UI: Leave base directory EMPTY (blank)
 
 [build]
   command = "npm install --legacy-peer-deps && npm run build:daily-danz"
@@ -11,42 +10,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Environment variables (set in Netlify dashboard)
-# NEXT_PUBLIC_API_URL=
-# NEXT_PUBLIC_FARCASTER_HEADER=
-# NEXT_PUBLIC_CHAIN_ID=
-
-# Redirect all requests to Next.js for SSR
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/___netlify-handler"
-  status = 200
-  force = false
-
-# Farcaster manifest must be accessible
-[[redirects]]
-  from = "/.well-known/farcaster.json"
-  to = "/.well-known/farcaster.json"
-  status = 200
-  force = true
-
-# Security headers
+# Security headers for Farcaster frames
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    # Allow embedding in Farcaster/Warpcast frames
     Content-Security-Policy = "frame-ancestors 'self' https://*.warpcast.com https://*.farcaster.xyz https://warpcast.com"
-
-# Cache static assets
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/_next/static/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
