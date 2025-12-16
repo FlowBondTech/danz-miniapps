@@ -1,9 +1,9 @@
 # Netlify Configuration for Daily DANZ Miniapp
-# In Netlify UI: Set base directory to "daily-danz"
+# In Netlify UI: Leave base directory EMPTY (blank)
 
 [build]
-  command = "cd .. && npm install --legacy-peer-deps && cd daily-danz && npm run build"
-  publish = ".next"
+  command = "npm install --legacy-peer-deps && npm run build:daily-danz"
+  publish = "daily-danz/.next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
