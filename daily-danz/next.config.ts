@@ -1,10 +1,11 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // Fix workspace root detection
-  outputFileTracingRoot: __dirname,
+  // Monorepo: trace from repo root to include all dependencies
+  outputFileTracingRoot: path.join(__dirname, '..'),
 
   // Optimize images for miniapp
   images: {
