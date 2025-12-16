@@ -41,10 +41,15 @@ Each miniapp deploys as a separate Netlify site:
 
 Set in Netlify Dashboard for each site:
 
+**Required:**
 ```
 NEXT_PUBLIC_API_URL=https://api.danz.xyz/graphql
 NEXT_PUBLIC_MINIAPP_URL=https://your-site.netlify.app
+NEXT_PUBLIC_CHAIN_ID=8453
+```
+
+**Optional (only if using these features):**
+```
 NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_key
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_id
-NEXT_PUBLIC_CHAIN_ID=8453
 ```
