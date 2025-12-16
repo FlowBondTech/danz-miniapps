@@ -1,9 +1,8 @@
 # Netlify Configuration for Daily DANZ Miniapp
-# Deploy as a separate Netlify site
+# In Netlify UI: Set base directory to "daily-danz"
 
 [build]
-  base = "daily-danz"
-  command = "cd .. && npm install --legacy-peer-deps && npm run build:daily-danz"
+  command = "cd .. && npm install --legacy-peer-deps && cd daily-danz && npm run build"
   publish = ".next"
 
 [[plugins]]
@@ -11,7 +10,6 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  NPM_FLAGS = "--legacy-peer-deps"
 
 # Environment variables (set in Netlify dashboard)
 # NEXT_PUBLIC_API_URL=
