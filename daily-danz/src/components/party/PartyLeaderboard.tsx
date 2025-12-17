@@ -10,20 +10,20 @@ interface PartyLeaderboardProps {
 export function PartyLeaderboard({ leaderboard, userPartyId }: PartyLeaderboardProps) {
   return (
     <div className="glass-section">
-      <div className="glass-section-inner space-y-4">
+      <div className="glass-section-inner space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <span className="text-xl">🏆</span>
+          <h2 className="text-sm font-semibold text-white flex items-center gap-1.5">
+            <span className="text-base">🏆</span>
             <span>Top Parties</span>
           </h2>
-          <span className="stat-pill">
+          <span className="stat-pill text-[10px] px-2 py-0.5">
             <span className="text-gray-400">This Week</span>
           </span>
         </div>
 
         {/* Leaderboard List */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {leaderboard.map((entry, index) => {
             const isUserParty = entry.party.id === userPartyId
             const tierConfig = PARTY_TIER_CONFIG[entry.party.tier]
@@ -48,55 +48,54 @@ export function PartyLeaderboard({ leaderboard, userPartyId }: PartyLeaderboardP
             return (
               <div
                 key={entry.party.id}
-                className={`${cardClass} p-3 flex items-center gap-3`}
+                className={`${cardClass} p-2 flex items-center gap-2`}
                 style={{
                   animationDelay: `${index * 50}ms`,
                 }}
               >
                 {/* Rank Badge */}
-                <div className={rankBadgeClass}>
+                <div className={`${rankBadgeClass} w-6 h-6 text-xs`}>
                   {isTop3 ? (
-                    <span className="text-base">{['🥇', '🥈', '🥉'][entry.rank - 1]}</span>
+                    <span className="text-sm">{['🥇', '🥈', '🥉'][entry.rank - 1]}</span>
                   ) : (
-                    <span className="text-gray-400">{entry.rank}</span>
+                    <span className="text-gray-400 text-[10px]">{entry.rank}</span>
                   )}
                 </div>
 
                 {/* Party Avatar & Info */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="avatar-glow w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-lg border border-white/10">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="avatar-glow w-8 h-8 rounded-lg bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-sm border border-white/10">
                     {entry.party.avatarEmoji}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white font-medium truncate">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-white font-medium text-xs truncate">
                         {entry.party.name}
                       </span>
                       {isUserParty && (
-                        <span className="stat-pill-accent text-[10px] px-2 py-0.5">
+                        <span className="stat-pill-accent text-[9px] px-1.5 py-0.5">
                           You
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-xs ${tierConfig.color}`}>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[10px] ${tierConfig.color}`}>
                         {tierConfig.emoji} {tierConfig.label}
                       </span>
-                      <span className="text-[10px] text-gray-500">•</span>
-                      <span className="text-xs text-gray-500">
-                        {entry.party.memberCount} members
+                      <span className="text-[9px] text-gray-500">•</span>
+                      <span className="text-[10px] text-gray-500">
+                        {entry.party.memberCount}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stats */}
-                <div className="text-right shrink-0 space-y-1">
-                  <div className="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+                <div className="text-right shrink-0">
+                  <div className="font-mono font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                     {entry.weeklyXp.toLocaleString()}
-                    <span className="text-[10px] text-gray-500 font-normal ml-1">XP</span>
                   </div>
-                  <div className="stat-pill text-[10px] py-0.5 px-2">
+                  <div className="text-[9px] text-gray-500 flex items-center justify-end gap-0.5">
                     <span>🔥</span>
                     <span className="text-orange-400">{entry.partyStreak}d</span>
                   </div>
@@ -107,8 +106,8 @@ export function PartyLeaderboard({ leaderboard, userPartyId }: PartyLeaderboardP
         </div>
 
         {/* View All Link */}
-        <button className="w-full py-2.5 text-center text-sm text-gray-400 hover:text-white transition-colors glass-card hover:glass-card-highlight">
-          View Full Leaderboard →
+        <button className="w-full py-2 text-center text-xs text-gray-400 hover:text-white transition-colors glass-card hover:glass-card-highlight">
+          View All →
         </button>
       </div>
     </div>

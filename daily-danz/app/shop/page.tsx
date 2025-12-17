@@ -27,15 +27,15 @@ export default function ShopPage() {
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-bg-secondary/80 backdrop-blur-md">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-bg-secondary/80 backdrop-blur-md">
+        <div className="flex items-center gap-2">
           <Link
             href="/party"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm"
           >
             ←
           </Link>
-          <span className="font-display font-bold text-lg">DANZ Shop</span>
+          <span className="font-display font-bold text-base">DANZ Shop</span>
         </div>
       </header>
 

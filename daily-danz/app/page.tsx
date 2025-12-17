@@ -37,10 +37,10 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-bg-secondary/80 backdrop-blur-md">
+      <header className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-bg-secondary/80 backdrop-blur-md">
         <div className="flex items-center gap-2">
           {/* Inline SVG logo */}
-          <svg className="w-8 h-8" viewBox="0 0 64 64" fill="none">
+          <svg className="w-7 h-7" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="28" stroke="url(#hdr-grad)" strokeWidth="3" fill="none" />
             <path d="M24 20 L32 44 L40 20" stroke="url(#hdr-grad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             <defs>
@@ -50,7 +50,7 @@ export default function Home() {
               </linearGradient>
             </defs>
           </svg>
-          <span className="font-display font-bold text-lg bg-gradient-neon bg-clip-text text-transparent">
+          <span className="font-display font-bold text-base bg-gradient-neon bg-clip-text text-transparent">
             Daily Danz
           </span>
         </div>
@@ -62,7 +62,7 @@ export default function Home() {
               <img
                 src={user.avatarUrl}
                 alt={user.displayName || 'User'}
-                className="w-8 h-8 rounded-full border-2 border-neon-pink"
+                className="w-7 h-7 rounded-full border-2 border-neon-pink"
               />
             )}
           </div>
@@ -70,7 +70,7 @@ export default function Home() {
 
         {/* Signup button for users not in Farcaster frame */}
         {!isFarcasterFrame && (
-          <button onClick={openSignupPage} className="btn-secondary text-sm py-2 px-4">
+          <button onClick={openSignupPage} className="btn-secondary text-xs py-1.5 px-3">
             Sign Up
           </button>
         )}

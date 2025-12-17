@@ -56,25 +56,25 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-white/10">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display font-bold text-xl flex items-center gap-2">
-            <span>🏪</span> DANZ Shop
+      <div className="p-3 border-b border-white/10">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-display font-bold text-base flex items-center gap-1.5">
+            <span>🏪</span> Shop
           </h2>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-danz-pink-500/20 to-danz-purple-500/20 rounded-full">
-            <span className="text-sm">💰</span>
-            <span className="font-bold">{userBalance.toLocaleString()}</span>
-            <span className="text-xs text-gray-400">DANZ</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-danz-pink-500/20 to-danz-purple-500/20 rounded-full">
+            <span className="text-xs">💰</span>
+            <span className="font-bold text-sm">{userBalance.toLocaleString()}</span>
+            <span className="text-[10px] text-gray-400">DANZ</span>
           </div>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-danz-pink-500 text-white'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -87,8 +87,8 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
       </div>
 
       {/* Items Grid */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="flex-1 overflow-y-auto p-3">
+        <div className="grid grid-cols-2 gap-2">
           {items.map((item) => {
             const owned = getOwnedQuantity(item.id)
             const affordable = canAfford(item.price)
@@ -98,7 +98,7 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
               <button
                 key={item.id}
                 onClick={() => setSelectedItem(item)}
-                className={`relative p-3 rounded-xl border text-left transition-all ${
+                className={`relative p-2.5 rounded-lg border text-left transition-all ${
                   maxed
                     ? 'bg-white/5 border-white/5 opacity-60'
                     : affordable
@@ -107,35 +107,35 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
                 }`}
               >
                 {/* Rarity indicator */}
-                <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${getRarityBgColor(item.rarity)}`} />
+                <div className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${getRarityBgColor(item.rarity)}`} />
 
                 {/* Owned badge */}
                 {owned > 0 && (
-                  <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-green-500/20 rounded text-xs text-green-400">
+                  <div className="absolute top-1.5 left-1.5 px-1 py-0.5 bg-green-500/20 rounded text-[9px] text-green-400">
                     x{owned}
                   </div>
                 )}
 
                 {/* Item Content */}
                 <div className="text-center">
-                  <span className="text-3xl mb-2 block">{item.emoji}</span>
-                  <h4 className="font-medium text-sm mb-1 line-clamp-1">{item.name}</h4>
-                  <p className={`text-xs font-medium ${getRarityColor(item.rarity)}`}>
+                  <span className="text-2xl mb-1 block">{item.emoji}</span>
+                  <h4 className="font-medium text-xs mb-0.5 line-clamp-1">{item.name}</h4>
+                  <p className={`text-[10px] font-medium ${getRarityColor(item.rarity)}`}>
                     {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
                   </p>
                 </div>
 
                 {/* Price */}
-                <div className="mt-2 pt-2 border-t border-white/5 text-center">
-                  <span className={`font-bold ${affordable ? 'text-danz-pink-400' : 'text-gray-500'}`}>
+                <div className="mt-1.5 pt-1.5 border-t border-white/5 text-center">
+                  <span className={`font-bold text-xs ${affordable ? 'text-danz-pink-400' : 'text-gray-500'}`}>
                     {item.price} DANZ
                   </span>
                 </div>
 
                 {/* Maxed indicator */}
                 {maxed && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-                    <span className="text-xs text-gray-300">MAX</span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                    <span className="text-[10px] text-gray-300">MAX</span>
                   </div>
                 )}
               </button>
@@ -152,57 +152,57 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
             onClick={() => setSelectedItem(null)}
           />
 
-          <div className="relative w-full max-w-md bg-bg-secondary rounded-t-3xl border-t border-white/10 animate-slide-up">
+          <div className="relative w-full max-w-md bg-bg-secondary rounded-t-2xl border-t border-white/10 animate-slide-up">
             {/* Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 bg-white/20 rounded-full" />
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-8 h-1 bg-white/20 rounded-full" />
             </div>
 
             {/* Item Header */}
-            <div className="px-4 pb-4 text-center">
-              <span className="text-5xl mb-3 block">{selectedItem.emoji}</span>
-              <h3 className="font-display font-bold text-xl">{selectedItem.name}</h3>
-              <p className={`text-sm ${getRarityColor(selectedItem.rarity)} mt-1`}>
+            <div className="px-4 pb-3 text-center">
+              <span className="text-4xl mb-2 block">{selectedItem.emoji}</span>
+              <h3 className="font-display font-bold text-lg">{selectedItem.name}</h3>
+              <p className={`text-xs ${getRarityColor(selectedItem.rarity)} mt-0.5`}>
                 {selectedItem.rarity.charAt(0).toUpperCase() + selectedItem.rarity.slice(1)} Item
               </p>
             </div>
 
             {/* Description */}
-            <div className="px-4 pb-4">
-              <p className="text-gray-300 text-sm text-center">{selectedItem.description}</p>
+            <div className="px-4 pb-3">
+              <p className="text-gray-300 text-xs text-center">{selectedItem.description}</p>
             </div>
 
             {/* Effect */}
-            <div className="mx-4 p-3 bg-danz-purple-500/10 rounded-xl border border-danz-purple-500/20 mb-4">
-              <p className="text-xs text-gray-400 mb-1">Effect:</p>
-              <p className="text-sm font-medium">{selectedItem.effect.description}</p>
+            <div className="mx-4 p-2.5 bg-danz-purple-500/10 rounded-lg border border-danz-purple-500/20 mb-3">
+              <p className="text-[10px] text-gray-400 mb-0.5">Effect:</p>
+              <p className="text-xs font-medium">{selectedItem.effect.description}</p>
             </div>
 
             {/* Details */}
-            <div className="px-4 pb-4 space-y-2">
+            <div className="px-4 pb-3 space-y-1.5">
               {selectedItem.duration && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Duration</span>
                   <span>{selectedItem.duration}h</span>
                 </div>
               )}
               {selectedItem.maxStack && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Max Stack</span>
                   <span>{selectedItem.maxStack}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs">
                 <span className="text-gray-400">You Own</span>
                 <span>{getOwnedQuantity(selectedItem.id)}</span>
               </div>
             </div>
 
             {/* Purchase Button */}
-            <div className="p-4 border-t border-white/5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-400">Price</span>
-                <span className="font-bold text-xl text-danz-pink-400">
+            <div className="p-3 border-t border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-gray-400 text-xs">Price</span>
+                <span className="font-bold text-lg text-danz-pink-400">
                   {selectedItem.price} DANZ
                 </span>
               </div>
@@ -210,22 +210,22 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
               {selectedItem.maxStack && getOwnedQuantity(selectedItem.id) >= selectedItem.maxStack ? (
                 <button
                   disabled
-                  className="w-full py-3 bg-white/5 rounded-xl text-gray-500 font-medium"
+                  className="w-full py-2.5 bg-white/5 rounded-lg text-gray-500 text-sm font-medium"
                 >
                   Maximum Owned
                 </button>
               ) : !canAfford(selectedItem.price) ? (
                 <button
                   disabled
-                  className="w-full py-3 bg-white/5 rounded-xl text-gray-500 font-medium"
+                  className="w-full py-2.5 bg-white/5 rounded-lg text-gray-500 text-xs font-medium"
                 >
-                  Insufficient DANZ ({(selectedItem.price - userBalance).toLocaleString()} more needed)
+                  Need {(selectedItem.price - userBalance).toLocaleString()} more DANZ
                 </button>
               ) : (
                 <button
                   onClick={() => handlePurchase(selectedItem)}
                   disabled={purchasing}
-                  className="w-full py-3 bg-gradient-to-r from-neon-pink to-neon-purple rounded-xl font-medium shadow-glow-pink hover:scale-[1.02] transition-transform disabled:opacity-50"
+                  className="w-full py-2.5 bg-gradient-to-r from-neon-pink to-neon-purple rounded-lg text-sm font-medium shadow-glow-pink hover:scale-[1.02] transition-transform disabled:opacity-50"
                 >
                   {purchasing ? 'Purchasing...' : `Buy for ${selectedItem.price} DANZ`}
                 </button>
@@ -233,9 +233,9 @@ export function PartyShop({ userBalance, ownedItems = [], onPurchase }: PartySho
             </div>
 
             {/* Balance info */}
-            <div className="px-4 pb-6 text-center">
-              <p className="text-xs text-gray-500">
-                Your balance: {userBalance.toLocaleString()} DANZ
+            <div className="px-4 pb-4 text-center">
+              <p className="text-[10px] text-gray-500">
+                Balance: {userBalance.toLocaleString()} DANZ
               </p>
             </div>
           </div>

@@ -115,18 +115,18 @@ export function DailyCheckIn({
   // Already checked in today
   if (hasCheckedInToday) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] px-6 text-center">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-danz-pink-500 to-danz-purple-600 flex items-center justify-center shadow-neon-pink mb-6">
-          <span className="text-5xl">✅</span>
+      <div className="flex flex-col items-center justify-center min-h-[360px] px-6 py-8 text-center">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-danz-pink-500 to-danz-purple-600 flex items-center justify-center shadow-neon-pink mb-5">
+          <span className="text-4xl">✅</span>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">
+        <h1 className="text-xl font-bold text-white mb-2">
           You&apos;ve checked in today!
         </h1>
-        <p className="text-gray-400 mb-4">
+        <p className="text-gray-400 text-sm mb-4">
           Come back tomorrow to continue your streak
         </p>
         <div className="px-4 py-2 rounded-full bg-danz-dark-800 border border-danz-pink-500/30">
-          <span className="text-danz-pink-300">
+          <span className="text-danz-pink-300 text-sm">
             🔥 {currentStreak} day streak
           </span>
         </div>
