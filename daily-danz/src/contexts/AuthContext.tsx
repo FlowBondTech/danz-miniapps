@@ -1,11 +1,24 @@
 'use client'
 
 import { useApolloClient } from '@apollo/client'
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import { useFarcasterSDK } from '@/hooks/useFarcasterSDK'
+import {
+  type User as FullUser,
+  type AuthProvider as AuthProviderType,
+  type LinkingStatus,
+  getLinkingStatus,
+  LINKING_REWARDS,
+} from '@/types/auth'
+import { useAccountLinking } from '@/hooks/useAccountLinking'
+import { fetchUserProfile } from '@/lib/account-linking'
 
-// User type matching the GraphQL schema
-interface User {
+// =====================================================
+// Types
+// =====================================================
+
+// Simple user type for Farcaster-only context
+interface FarcasterUser {
   id: string
   username: string | null
   displayName: string | null
@@ -17,7 +30,8 @@ interface User {
 
 interface AuthContextType {
   // User state
-  user: User | null
+  user: FarcasterUser | null
+  fullUser: FullUser | null  // Full user with linked accounts
   isAuthenticated: boolean
   isLoading: boolean
 
@@ -28,12 +42,31 @@ interface AuthContextType {
   subscribedEmail: string | null
   subscribeEmail: (email: string) => Promise<boolean>
 
+  // Account linking
+  linkingStatus: LinkingStatus | null
+  isLinking: boolean
+  linkingError: string | null
+  linkToWeb: () => Promise<void>
+  unlinkProvider: (provider: AuthProviderType) => Promise<void>
+  clearLinkingError: () => void
+  linkingXpPotential: {
+    earned: number
+    potential: number
+    remaining: number
+  } | null
+  linkingRewards: typeof LINKING_REWARDS
+
   // Actions
   logout: () => Promise<void>
   openSignupPage: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// =====================================================
+// Provider
+// =====================================================
 
 interface AuthProviderProps {
   children: ReactNode
@@ -42,6 +75,8 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const apolloClient = useApolloClient()
   const [subscribedEmail, setSubscribedEmail] = useState<string | null>(null)
+  const [fullUser, setFullUser] = useState<FullUser | null>(null)
+  const [isLoadingFullUser, setIsLoadingFullUser] = useState(false)
 
   // Farcaster SDK context (the ONLY auth source for miniapps)
   const {
@@ -51,8 +86,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     openUrl
   } = useFarcasterSDK()
 
-  // Build user from Farcaster context
-  const user: User | null = farcasterUser ? {
+  // Build simple user from Farcaster context
+  const user: FarcasterUser | null = farcasterUser ? {
     id: `farcaster:${farcasterUser.fid}`,
     username: farcasterUser.username || null,
     displayName: farcasterUser.displayName || null,
@@ -62,8 +97,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
     email: subscribedEmail,
   } : null
 
+  // Handle full user updates
+  const handleUserUpdate = useCallback((updatedUser: FullUser) => {
+    setFullUser(updatedUser)
+  }, [])
+
+  // Handle linking success
+  const handleLinkSuccess = useCallback((provider: AuthProviderType, bonusXp?: number) => {
+    console.log(`Account linked: ${provider}${bonusXp ? `, earned ${bonusXp} XP` : ''}`)
+    // Could show a toast notification here
+  }, [])
+
+  // Handle linking error
+  const handleLinkError = useCallback((error: string) => {
+    console.error('Linking error:', error)
+    // Could show a toast notification here
+  }, [])
+
+  // Account linking hook
+  const {
+    isLinking,
+    linkingError,
+    linkingStatus,
+    linkToWeb,
+    unlinkProvider,
+    clearError: clearLinkingError,
+    xpPotential: linkingXpPotential,
+  } = useAccountLinking({
+    user: fullUser,
+    onUserUpdate: handleUserUpdate,
+    onLinkSuccess: handleLinkSuccess,
+    onLinkError: handleLinkError,
+  })
+
   // Loading state
-  const isLoading = !farcasterLoaded
+  const isLoading = !farcasterLoaded || isLoadingFullUser
+
+  // Fetch full user profile when Farcaster user is available
+  const refreshUser = useCallback(async () => {
+    if (!farcasterUser?.fid) {
+      setFullUser(null)
+      return
+    }
+
+    setIsLoadingFullUser(true)
+    try {
+      const profile = await fetchUserProfile()
+      if (profile) {
+        setFullUser(profile)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error)
+    } finally {
+      setIsLoadingFullUser(false)
+    }
+  }, [farcasterUser?.fid])
+
+  // Fetch full user on Farcaster auth
+  useEffect(() => {
+    if (farcasterUser?.fid) {
+      refreshUser()
+    }
+  }, [farcasterUser?.fid, refreshUser])
 
   // Subscribe email for updates (stores locally and could send to backend)
   const subscribeEmail = async (email: string): Promise<boolean> => {
@@ -100,6 +195,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout handler (clears local state)
   const logout = async () => {
     setSubscribedEmail(null)
+    setFullUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('danz_subscribed_email')
     }
@@ -108,22 +204,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // Load saved email on mount
-  if (typeof window !== 'undefined' && !subscribedEmail) {
-    const savedEmail = localStorage.getItem('danz_subscribed_email')
-    if (savedEmail) {
-      setSubscribedEmail(savedEmail)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !subscribedEmail) {
+      const savedEmail = localStorage.getItem('danz_subscribed_email')
+      if (savedEmail) {
+        setSubscribedEmail(savedEmail)
+      }
     }
-  }
+  }, [subscribedEmail])
 
   const contextValue: AuthContextType = {
+    // User state
     user,
+    fullUser,
     isAuthenticated: !!user,
     isLoading,
+
+    // Farcaster state
     isFarcasterFrame: isInFrame,
+
+    // Email
     subscribedEmail,
     subscribeEmail,
+
+    // Account linking
+    linkingStatus: fullUser ? getLinkingStatus(fullUser) : linkingStatus,
+    isLinking,
+    linkingError,
+    linkToWeb,
+    unlinkProvider,
+    clearLinkingError,
+    linkingXpPotential,
+    linkingRewards: LINKING_REWARDS,
+
+    // Actions
     logout,
     openSignupPage,
+    refreshUser,
   }
 
   return (
@@ -132,6 +249,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     </AuthContext.Provider>
   )
 }
+
+// =====================================================
+// Hook
+// =====================================================
 
 export function useAuth() {
   const context = useContext(AuthContext)
