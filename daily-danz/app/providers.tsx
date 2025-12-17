@@ -3,6 +3,7 @@
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ApolloProvider } from '@/providers/ApolloProvider'
 import { WagmiProvider } from '@/providers/WagmiProvider'
+import { NeynarProvider } from '@/providers/NeynarProvider'
 import type { ReactNode } from 'react'
 
 interface ProvidersProps {
@@ -11,12 +12,14 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <WagmiProvider>
-      <ApolloProvider>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </ApolloProvider>
-    </WagmiProvider>
+    <NeynarProvider>
+      <WagmiProvider>
+        <ApolloProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ApolloProvider>
+      </WagmiProvider>
+    </NeynarProvider>
   )
 }

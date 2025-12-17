@@ -1,12 +1,34 @@
 'use client'
 
 import { useState } from 'react'
+import { FarcasterLoginButton } from './FarcasterLoginButton'
 
 interface WebLoginPromptProps {
   onSignUp: () => void
+  onFarcasterLogin?: (user: {
+    fid: number
+    username: string
+    displayName: string
+    pfpUrl: string
+  }) => void
 }
 
-export function WebLoginPrompt({ onSignUp }: WebLoginPromptProps) {
+export function WebLoginPrompt({ onSignUp, onFarcasterLogin }: WebLoginPromptProps) {
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+
+  const handleFarcasterSuccess = (user: {
+    fid: number
+    username: string
+    displayName: string
+    pfpUrl: string
+    signerUuid: string
+  }) => {
+    setIsLoggingIn(false)
+    if (onFarcasterLogin) {
+      onFarcasterLogin(user)
+    }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] px-6 py-8 text-center">
       {/* Logo/Icon */}
@@ -22,15 +44,16 @@ export function WebLoginPrompt({ onSignUp }: WebLoginPromptProps) {
         Check in daily, build streaks, and earn rewards for dancing!
       </p>
 
-      {/* Open in Warpcast */}
-      <a
-        href="https://warpcast.com/~/frames/launch?url=https://dailydanz.app"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full max-w-xs py-3 px-6 bg-gradient-to-r from-danz-pink-500 to-danz-purple-600 rounded-xl text-white font-semibold text-center shadow-neon-pink hover:scale-[1.02] transition-transform mb-3"
-      >
-        Open in Warpcast
-      </a>
+      {/* Sign In With Farcaster */}
+      <div className="w-full max-w-xs mb-4">
+        <FarcasterLoginButton
+          onSuccess={handleFarcasterSuccess}
+          onError={(error) => {
+            console.error('Farcaster login error:', error)
+            setIsLoggingIn(false)
+          }}
+        />
+      </div>
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-4 w-full max-w-xs">
@@ -39,18 +62,30 @@ export function WebLoginPrompt({ onSignUp }: WebLoginPromptProps) {
         <div className="flex-1 h-px bg-white/10" />
       </div>
 
-      {/* Sign Up Button */}
+      {/* Open in Warpcast - secondary option */}
+      <a
+        href="https://warpcast.com/~/frames/launch?url=https://dailydanz.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full max-w-xs py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-white/80 font-medium text-center hover:bg-white/10 transition-colors mb-3 flex items-center justify-center gap-2"
+      >
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        Open in Warpcast
+      </a>
+
+      {/* Create Account */}
       <button
         onClick={onSignUp}
-        className="w-full max-w-xs py-3 px-6 bg-white/10 border border-white/20 rounded-xl text-white font-medium hover:bg-white/15 transition-colors"
+        className="w-full max-w-xs py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-white/80 font-medium hover:bg-white/10 transition-colors"
       >
         Create DANZ Account
       </button>
 
       {/* Info */}
       <p className="text-gray-500 text-xs mt-6 max-w-xs">
-        Daily DANZ works best in Warpcast or Coinbase Wallet.
-        Sign up to get notified when web login is available.
+        Sign in with Farcaster to track your daily check-ins and earn rewards.
       </p>
     </div>
   )

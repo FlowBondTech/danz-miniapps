@@ -1,6 +1,7 @@
 'use client'
 
 import { useApolloClient } from '@apollo/client'
+import { useNeynarContext } from '@neynar/react'
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import { useFarcasterSDK } from '@/hooks/useFarcasterSDK'
 import {
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [fullUser, setFullUser] = useState<FullUser | null>(null)
   const [isLoadingFullUser, setIsLoadingFullUser] = useState(false)
 
-  // Farcaster SDK context (the ONLY auth source for miniapps)
+  // Farcaster SDK context (for miniapp frame users)
   const {
     isLoaded: farcasterLoaded,
     isInFrame,
@@ -86,13 +87,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     openUrl
   } = useFarcasterSDK()
 
-  // Build simple user from Farcaster context
+  // Neynar web auth context (for web users signing in with Farcaster)
+  let neynarUser: { fid: number; username: string | null; display_name: string | null; pfp_url: string | null } | null = null
+  let neynarAuthenticated = false
+  let neynarLogout: (() => void) | null = null
+
+  try {
+    const neynarContext = useNeynarContext()
+    neynarUser = neynarContext.user
+    neynarAuthenticated = neynarContext.isAuthenticated
+    neynarLogout = neynarContext.logoutUser
+  } catch {
+    // Neynar context not available (e.g., no client ID configured)
+  }
+
+  // Build simple user from Farcaster SDK (frame) or Neynar (web)
   const user: FarcasterUser | null = farcasterUser ? {
     id: `farcaster:${farcasterUser.fid}`,
     username: farcasterUser.username || null,
     displayName: farcasterUser.displayName || null,
     avatarUrl: farcasterUser.pfpUrl || null,
     fid: farcasterUser.fid,
+    walletAddress: null,
+    email: subscribedEmail,
+  } : neynarUser && neynarAuthenticated ? {
+    id: `farcaster:${neynarUser.fid}`,
+    username: neynarUser.username || null,
+    displayName: neynarUser.display_name || null,
+    avatarUrl: neynarUser.pfp_url || null,
+    fid: neynarUser.fid,
     walletAddress: null,
     email: subscribedEmail,
   } : null
@@ -133,9 +156,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Loading state
   const isLoading = !farcasterLoaded || isLoadingFullUser
 
+  // Get the active FID (from either Farcaster SDK or Neynar)
+  const activeFid = farcasterUser?.fid || (neynarAuthenticated ? neynarUser?.fid : null)
+
   // Fetch full user profile when Farcaster user is available
   const refreshUser = useCallback(async () => {
-    if (!farcasterUser?.fid) {
+    if (!activeFid) {
       setFullUser(null)
       return
     }
@@ -151,14 +177,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoadingFullUser(false)
     }
-  }, [farcasterUser?.fid])
+  }, [activeFid])
 
-  // Fetch full user on Farcaster auth
+  // Fetch full user on Farcaster auth (either SDK or Neynar)
   useEffect(() => {
-    if (farcasterUser?.fid) {
+    if (activeFid) {
       refreshUser()
     }
-  }, [farcasterUser?.fid, refreshUser])
+  }, [activeFid, refreshUser])
 
   // Subscribe email for updates (stores locally and could send to backend)
   const subscribeEmail = async (email: string): Promise<boolean> => {
@@ -192,12 +218,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     openUrl('https://danz.app/signup')
   }
 
-  // Logout handler (clears local state)
+  // Logout handler (clears local state and Neynar session)
   const logout = async () => {
     setSubscribedEmail(null)
     setFullUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('danz_subscribed_email')
+    }
+    // Logout from Neynar if authenticated via web
+    if (neynarLogout) {
+      neynarLogout()
     }
     // Clear Apollo cache
     await apolloClient.clearStore()
