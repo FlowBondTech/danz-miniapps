@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  getSupabaseAdmin,
   getOrCreateUserByFid,
   getTodayCheckin,
   recordCheckin,
   getUserStats,
+  getUserByFid,
 } from '@/lib/supabase'
 
 interface CheckinRequest {
@@ -50,10 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already checked in today
-    const existingCheckin = await getTodayCheckin(user.id)
+    const existingCheckin = await getTodayCheckin(user.privy_id)
     if (existingCheckin) {
       // Return existing check-in data
-      const stats = await getUserStats(user.id)
+      const stats = await getUserStats(user.privy_id)
       return NextResponse.json({
         success: true,
         alreadyCheckedIn: true,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Record new check-in
     const result = await recordCheckin(
-      user.id,
+      user.privy_id,
       fid,
       didDance,
       user.current_streak,
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get updated stats
-    const stats = await getUserStats(user.id)
+    const stats = await getUserStats(user.privy_id)
 
     return NextResponse.json({
       success: true,
@@ -123,16 +123,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Find user by FID
-    const supabase = getSupabaseAdmin()
-    const { data: provider } = await supabase
-      .from('user_auth_providers')
-      .select('user_id')
-      .eq('provider', 'farcaster')
-      .eq('provider_id', fid.toString())
-      .single()
+    // Find user by FID using farcaster_fid column
+    const user = await getUserByFid(fid)
 
-    if (!provider) {
+    if (!user) {
       // User doesn't exist yet - they haven't checked in
       return NextResponse.json({
         hasCheckedInToday: false,
@@ -142,8 +136,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get today's check-in
-    const checkin = await getTodayCheckin(provider.user_id)
-    const stats = await getUserStats(provider.user_id)
+    const checkin = await getTodayCheckin(user.privy_id)
+    const stats = await getUserStats(user.privy_id)
 
     return NextResponse.json({
       hasCheckedInToday: !!checkin,

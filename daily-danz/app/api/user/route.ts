@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  getSupabaseAdmin,
   getOrCreateUserByFid,
   getUserStats,
+  getUserByFid,
   type DbUser,
 } from '@/lib/supabase'
 
@@ -14,7 +14,7 @@ interface UserResponse {
     longestStreak: number
     level: number
     totalCheckins: number
-  }
+  } | null
 }
 
 /**
@@ -42,28 +42,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Find user by FID
-    const supabase = getSupabaseAdmin()
-    const { data: provider } = await supabase
-      .from('user_auth_providers')
-      .select('user_id')
-      .eq('provider', 'farcaster')
-      .eq('provider_id', fid.toString())
-      .single()
-
-    if (!provider) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
-    // Get user and stats
-    const { data: user } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', provider.user_id)
-      .single()
+    // Find user by FID using farcaster_fid column
+    const user = await getUserByFid(fid)
 
     if (!user) {
       return NextResponse.json(
@@ -72,7 +52,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const stats = await getUserStats(provider.user_id)
+    const stats = await getUserStats(user.privy_id)
 
     return NextResponse.json({
       user,
@@ -113,7 +93,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const stats = await getUserStats(user.id)
+    const stats = await getUserStats(user.privy_id)
 
     return NextResponse.json({
       user,

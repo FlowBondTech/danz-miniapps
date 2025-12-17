@@ -46,17 +46,18 @@ export const getSupabaseAdmin = (): SupabaseClient => {
 // Note: Use getSupabase() and getSupabaseAdmin() functions in API routes
 // to ensure lazy initialization during runtime, not build time.
 
-// Database types
+// Database types - matches actual production schema
 export interface DbUser {
-  id: string
+  privy_id: string          // Primary key (TEXT)
   username: string | null
   display_name: string | null
   avatar_url: string | null
-  email: string | null
-  total_xp: number
-  current_level: number
+  bio: string | null
+  xp: number                // XP column name in production
+  level: number             // Level column name in production
   current_streak: number
   longest_streak: number
+  farcaster_fid: number | null  // Farcaster FID for lookup
   created_at: string
   updated_at: string
   last_active_at: string
@@ -64,7 +65,7 @@ export interface DbUser {
 
 export interface DbCheckin {
   id: string
-  user_id: string
+  user_id: string           // References users(privy_id)
   fid: number
   checked_in_at: string
   did_dance: boolean
@@ -80,16 +81,6 @@ export interface DbCheckin {
   created_at: string
 }
 
-export interface DbAuthProvider {
-  id: string
-  user_id: string
-  provider: 'privy' | 'farcaster' | 'wallet'
-  provider_id: string
-  metadata: Record<string, unknown>
-  is_primary: boolean
-  linked_at: string
-}
-
 // Helper to get or create user by Farcaster FID
 export async function getOrCreateUserByFid(
   fid: number,
@@ -101,42 +92,37 @@ export async function getOrCreateUserByFid(
 ): Promise<DbUser | null> {
   const supabase = getSupabaseAdmin()
 
-  // First try to find existing user by FID
-  const { data: existingProvider } = await supabase
-    .from('user_auth_providers')
-    .select('user_id')
-    .eq('provider', 'farcaster')
-    .eq('provider_id', fid.toString())
+  // First try to find existing user by farcaster_fid
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('*')
+    .eq('farcaster_fid', fid)
     .single()
 
-  if (existingProvider) {
-    // Get the full user
-    const { data: user } = await supabase
+  if (existingUser) {
+    // Update last_active_at
+    await supabase
       .from('users')
-      .select('*')
-      .eq('id', existingProvider.user_id)
-      .single()
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('privy_id', existingUser.privy_id)
 
-    if (user) {
-      // Update last_active_at
-      await supabase
-        .from('users')
-        .update({ last_active_at: new Date().toISOString() })
-        .eq('id', user.id)
-
-      return user as DbUser
-    }
+    return existingUser as DbUser
   }
 
-  // Create new user
+  // Create new user with a Farcaster-based privy_id
+  // Format: fc-{fid} to distinguish from Privy DID users
+  const farcasterPrivyId = `fc-${fid}`
+
   const { data: newUser, error: userError } = await supabase
     .from('users')
     .insert({
+      privy_id: farcasterPrivyId,
       username: userData?.username || null,
       display_name: userData?.displayName || null,
       avatar_url: userData?.pfpUrl || null,
-      total_xp: 0,
-      current_level: 1,
+      farcaster_fid: fid,
+      xp: 0,
+      level: 1,
       current_streak: 0,
       longest_streak: 0,
     })
@@ -148,27 +134,20 @@ export async function getOrCreateUserByFid(
     return null
   }
 
-  // Link Farcaster provider
-  const { error: providerError } = await supabase
-    .from('user_auth_providers')
-    .insert({
-      user_id: newUser.id,
-      provider: 'farcaster',
-      provider_id: fid.toString(),
-      metadata: {
-        fid,
-        username: userData?.username,
-        displayName: userData?.displayName,
-        pfpUrl: userData?.pfpUrl,
-      },
-      is_primary: true,
-    })
-
-  if (providerError) {
-    console.error('Failed to link Farcaster provider:', providerError)
-  }
-
   return newUser as DbUser
+}
+
+// Get user by privy_id
+export async function getUserByPrivyId(privyId: string): Promise<DbUser | null> {
+  const supabase = getSupabaseAdmin()
+
+  const { data } = await supabase
+    .from('users')
+    .select('*')
+    .eq('privy_id', privyId)
+    .single()
+
+  return data as DbUser | null
 }
 
 // Get user's check-in for today
@@ -253,26 +232,26 @@ export async function recordCheckin(
     return null
   }
 
-  // Update user's XP and streak directly (simpler than RPC)
+  // Update user's XP and streak
   // First get current user data
   const { data: userData } = await supabase
     .from('users')
-    .select('total_xp, longest_streak')
-    .eq('id', userId)
+    .select('xp, longest_streak')
+    .eq('privy_id', userId)
     .single()
 
-  const currentTotalXp = userData?.total_xp || 0
+  const currentTotalXp = userData?.xp || 0
   const currentLongestStreak = userData?.longest_streak || 0
 
   await supabase
     .from('users')
     .update({
-      total_xp: currentTotalXp + xp.totalXp,
+      xp: currentTotalXp + xp.totalXp,
       current_streak: newStreak,
       longest_streak: Math.max(newStreak, currentLongestStreak),
       last_active_at: new Date().toISOString(),
     })
-    .eq('id', userId)
+    .eq('privy_id', userId)
 
   return {
     checkin: checkin as DbCheckin,
@@ -293,8 +272,8 @@ export async function getUserStats(userId: string): Promise<{
 
   const { data: user } = await supabase
     .from('users')
-    .select('total_xp, current_streak, longest_streak, current_level')
-    .eq('id', userId)
+    .select('xp, current_streak, longest_streak, level')
+    .eq('privy_id', userId)
     .single()
 
   if (!user) return null
@@ -306,10 +285,23 @@ export async function getUserStats(userId: string): Promise<{
     .eq('user_id', userId)
 
   return {
-    totalXp: user.total_xp,
+    totalXp: user.xp,
     currentStreak: user.current_streak,
     longestStreak: user.longest_streak,
-    level: user.current_level,
+    level: user.level,
     totalCheckins: count || 0,
   }
+}
+
+// Get user by Farcaster FID (without creating)
+export async function getUserByFid(fid: number): Promise<DbUser | null> {
+  const supabase = getSupabaseAdmin()
+
+  const { data } = await supabase
+    .from('users')
+    .select('*')
+    .eq('farcaster_fid', fid)
+    .single()
+
+  return data as DbUser | null
 }
