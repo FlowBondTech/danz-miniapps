@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { PartyShop } from '@/components/party'
+import { BottomNav } from '@/components/ui/BottomNav'
 import type { ShopItem } from '@/types/shop'
 
 export default function ShopPage() {
@@ -38,8 +39,8 @@ export default function ShopPage() {
         </div>
       </header>
 
-      {/* Shop Content */}
-      <main className="flex-1 overflow-hidden">
+      {/* Shop Content - add padding for auto-hide nav */}
+      <main className="flex-1 overflow-hidden pb-20">
         <PartyShop
           userBalance={userBalance}
           ownedItems={ownedItems}
@@ -47,45 +48,8 @@ export default function ShopPage() {
         />
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="flex items-center justify-around px-4 py-2 border-t border-white/10 bg-bg-secondary/80 backdrop-blur-md">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-gray-500 hover:text-danz-pink-400 transition-colors"
-        >
-          <span className="text-xl">💃</span>
-          <span className="text-xs font-medium">Check In</span>
-        </Link>
-        <Link
-          href="/party"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-gray-500 hover:text-danz-pink-400 transition-colors"
-        >
-          <span className="text-xl">🎉</span>
-          <span className="text-xs font-medium">Party</span>
-        </Link>
-        <Link
-          href="/shop"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-danz-pink-400"
-        >
-          <span className="text-xl">🏪</span>
-          <span className="text-xs font-medium">Shop</span>
-        </Link>
-      </nav>
-
-      {/* Footer */}
-      <footer className="px-4 py-2 border-t border-white/5 text-center">
-        <p className="text-xs text-gray-600">
-          Produced by{' '}
-          <a
-            href="https://flowbond.tech"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-danz-pink-500/60 hover:text-danz-pink-400 transition-colors"
-          >
-            FlowBond Tech
-          </a>
-        </p>
-      </footer>
+      {/* Auto-hide Bottom Navigation */}
+      <BottomNav />
     </div>
   )
 }

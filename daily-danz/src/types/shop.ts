@@ -226,6 +226,9 @@ export const BOOST_ITEMS: ShopItem[] = [
 // ============================================
 // UTILITY ITEMS
 // ============================================
+// Removed items (per UX research):
+// - anonymous_encourage (Secret Admirer) - enables confusion/harassment
+// - party_rename (Party Rebrand) - moderation nightmare
 
 export const UTILITY_ITEMS: ShopItem[] = [
   {
@@ -242,38 +245,6 @@ export const UTILITY_ITEMS: ShopItem[] = [
       type: 'extra_messages',
       value: 5,
       description: '+5 encouragement messages',
-    },
-  },
-  {
-    id: 'anonymous_encourage',
-    name: 'Secret Admirer',
-    description: 'Send anonymous encouragement messages. Mystery motivation!',
-    emoji: '🎭',
-    category: 'utility',
-    rarity: 'uncommon',
-    price: 20,
-    duration: undefined, // 10 uses
-    maxStack: 5,
-    effect: {
-      type: 'anonymous_messages',
-      value: 10,
-      description: '10 anonymous messages',
-    },
-  },
-  {
-    id: 'party_rename',
-    name: 'Party Rebrand',
-    description: 'Change your party name and emoji. Fresh start!',
-    emoji: '✏️',
-    category: 'utility',
-    rarity: 'uncommon',
-    price: 50,
-    duration: undefined,
-    maxStack: 1,
-    effect: {
-      type: 'party_rename',
-      value: true,
-      description: 'One-time party rename',
     },
   },
   {
@@ -313,68 +284,16 @@ export const UTILITY_ITEMS: ShopItem[] = [
 // ============================================
 // COSMETIC ITEMS
 // ============================================
+// NOTE: All cosmetic items removed per UX research
+// Cosmetics should be EARNED through achievements, not purchased
+// - Fire Frame -> 100-day streak reward
+// - Rainbow Frame -> Tier 3 party achievement
+// - Dance Master Title -> Achievement unlock
+// - Confetti Check-in -> 100 check-in milestone (free)
 
 export const COSMETIC_ITEMS: ShopItem[] = [
-  {
-    id: 'profile_frame_fire',
-    name: 'Fire Frame',
-    description: 'A blazing fire border around your avatar. Hot stuff!',
-    emoji: '🔥',
-    category: 'cosmetic',
-    rarity: 'uncommon',
-    price: 30,
-    duration: undefined, // Permanent
-    effect: {
-      type: 'avatar_frame',
-      value: 'fire',
-      description: 'Fire avatar frame',
-    },
-  },
-  {
-    id: 'profile_frame_rainbow',
-    name: 'Rainbow Frame',
-    description: 'Animated rainbow border. Show your colors!',
-    emoji: '🌈',
-    category: 'cosmetic',
-    rarity: 'rare',
-    price: 75,
-    duration: undefined,
-    effect: {
-      type: 'avatar_frame',
-      value: 'rainbow',
-      description: 'Rainbow avatar frame',
-    },
-  },
-  {
-    id: 'title_dance_master',
-    name: 'Dance Master Title',
-    description: 'Display "Dance Master" next to your name. Earned respect!',
-    emoji: '👑',
-    category: 'cosmetic',
-    rarity: 'epic',
-    price: 200,
-    duration: undefined,
-    effect: {
-      type: 'title',
-      value: 'Dance Master',
-      description: '"Dance Master" title',
-    },
-  },
-  {
-    id: 'confetti_checkin',
-    name: 'Confetti Check-in',
-    description: 'Your check-ins explode with confetti! Party vibes only.',
-    emoji: '🎊',
-    category: 'cosmetic',
-    rarity: 'uncommon',
-    price: 40,
-    duration: undefined,
-    effect: {
-      type: 'checkin_effect',
-      value: 'confetti',
-      description: 'Confetti on check-in',
-    },
-  },
+  // Cosmetics are now earned, not purchased
+  // See achievements system for unlock conditions
 ]
 
 // ============================================

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MyPartyBanner, PartyCard, PartyLeaderboard, CreatePartyModal, PartyDetailView } from '@/components/party'
+import { MyPartyBanner, PartyCard, PartyLeaderboard, CreatePartyModal, JoinPartyModal, PartyDetailView } from '@/components/party'
+import { BottomNav } from '@/components/ui/BottomNav'
 import { DanzParty, PartyLeaderboard as PartyLeaderboardType } from '@/types/party'
 
 // Mock data - will be replaced with real API data
@@ -172,6 +173,8 @@ type ViewState = 'home' | 'detail' | 'browse'
 export default function PartyPage() {
   const [view, setView] = useState<ViewState>('home')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const [selectedParty, setSelectedParty] = useState<DanzParty | null>(null)
   const [userParty] = useState<DanzParty | null>(MOCK_USER_PARTY)
 
   const handleCreateParty = async (data: { name: string; description: string; emoji: string; isPublic: boolean }) => {
@@ -186,9 +189,18 @@ export default function PartyPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
-  const handleJoinParty = (partyId: string) => {
+  const handleOpenJoinModal = (partyId: string) => {
+    const party = MOCK_DISCOVER_PARTIES.find(p => p.id === partyId)
+    if (party) {
+      setSelectedParty(party)
+      setShowJoinModal(true)
+    }
+  }
+
+  const handleJoinParty = async (partyId: string) => {
     // TODO: Implement API call
     console.log('Joining party:', partyId)
+    await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
   if (view === 'detail' && userParty) {
@@ -218,7 +230,7 @@ export default function PartyPage() {
         </Link>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <main className="flex-1 overflow-y-auto px-4 py-6 pb-24 space-y-6">
         {/* User's party or CTA */}
         <MyPartyBanner
           party={userParty}
@@ -241,45 +253,33 @@ export default function PartyPage() {
                 <PartyCard
                   key={party.id}
                   party={party}
-                  onJoin={handleJoinParty}
+                  onJoin={handleOpenJoinModal}
                 />
               ))}
             </div>
           </div>
         )}
-
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="flex items-center justify-around px-4 py-2 border-t border-white/10 bg-bg-secondary/80 backdrop-blur-md">
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-gray-500 hover:text-danz-pink-400 transition-colors"
-        >
-          <span className="text-xl">💃</span>
-          <span className="text-xs font-medium">Check In</span>
-        </Link>
-        <Link
-          href="/party"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-danz-pink-400"
-        >
-          <span className="text-xl">🎉</span>
-          <span className="text-xs font-medium">Party</span>
-        </Link>
-        <Link
-          href="/shop"
-          className="flex flex-col items-center gap-1 py-2 px-4 text-gray-500 hover:text-danz-pink-400 transition-colors"
-        >
-          <span className="text-xl">🏪</span>
-          <span className="text-xs font-medium">Shop</span>
-        </Link>
-      </nav>
+      {/* Auto-hide Bottom Navigation */}
+      <BottomNav />
 
       {/* Create party modal */}
       <CreatePartyModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateParty}
+      />
+
+      {/* Join party modal */}
+      <JoinPartyModal
+        isOpen={showJoinModal}
+        party={selectedParty}
+        onClose={() => {
+          setShowJoinModal(false)
+          setSelectedParty(null)
+        }}
+        onJoin={handleJoinParty}
       />
     </div>
   )
