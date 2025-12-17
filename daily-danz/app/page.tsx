@@ -3,18 +3,20 @@
 import { DailyCheckIn } from '@/components/checkin'
 import { MiniAppSplash } from '@/components/ui/MiniAppSplash'
 import { BottomNav } from '@/components/ui/BottomNav'
+import { WebLoginPrompt } from '@/components/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFarcasterSDK } from '@/hooks/useFarcasterSDK'
+import { useCheckin } from '@/hooks/useCheckin'
 import { useEffect, useState } from 'react'
 
 export default function Home() {
   const { isLoaded, ready } = useFarcasterSDK()
   const { user, isAuthenticated, isLoading, isFarcasterFrame, openSignupPage } = useAuth()
+  const { hasCheckedInToday, stats, checkIn, isLoading: checkinLoading } = useCheckin()
   const [showSplash, setShowSplash] = useState(true)
 
-  // Mock data - replace with real API data
-  const [currentStreak] = useState(3)
-  const [hasCheckedInToday] = useState(false)
+  // Get streak from stats or default to 0
+  const currentStreak = stats?.currentStreak ?? 0
 
   // Handle splash screen timing and SDK ready call
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function Home() {
   }, [isLoaded, isLoading, ready])
 
   // Render splash screen
-  if (showSplash || !isLoaded || isLoading) {
+  if (showSplash || !isLoaded || isLoading || checkinLoading) {
     return <MiniAppSplash title="Daily Danz" subtitle="Check in. Build streaks. Earn rewards." />
   }
 
@@ -78,10 +80,16 @@ export default function Home() {
 
       {/* Main Content - add padding for auto-hide nav */}
       <main className="flex-1 overflow-y-auto pb-20">
-        <DailyCheckIn
-          currentStreak={currentStreak}
-          hasCheckedInToday={hasCheckedInToday}
-        />
+        {/* Show login prompt for web users not authenticated */}
+        {!isFarcasterFrame && !isAuthenticated ? (
+          <WebLoginPrompt onSignUp={openSignupPage} />
+        ) : (
+          <DailyCheckIn
+            currentStreak={currentStreak}
+            hasCheckedInToday={hasCheckedInToday}
+            onCheckIn={checkIn}
+          />
+        )}
       </main>
 
       {/* Auto-hide Bottom Navigation */}

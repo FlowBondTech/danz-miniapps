@@ -63,20 +63,32 @@ const MOCK_BOND_SUGGESTIONS: SuggestedBond[] = [
 interface DailyCheckInProps {
   currentStreak?: number
   hasCheckedInToday?: boolean
+  onCheckIn?: (didDance: boolean, reflection?: {
+    feeling?: string
+    benefits?: string[]
+    note?: string
+  }) => Promise<{
+    success: boolean
+    xpEarned?: number
+    newStreak?: number
+    error?: string
+  }>
 }
 
 export function DailyCheckIn({
   currentStreak = 0,
   hasCheckedInToday = false,
+  onCheckIn,
 }: DailyCheckInProps) {
   const [step, setStep] = useState<CheckInStep>('checkin')
   const [showBurst, setShowBurst] = useState(false)
   const [didDance, setDidDance] = useState(false)
   const [reflection, setReflection] = useState<DanceReflection | null>(null)
   const [rewards, setRewards] = useState<CheckInRewards | null>(null)
+  const [actualNewStreak, setActualNewStreak] = useState(0)
 
-  // New streak after check-in
-  const newStreak = didDance ? currentStreak + 1 : 0
+  // New streak after check-in (local estimate, will be updated from API)
+  const newStreak = actualNewStreak || (didDance ? currentStreak + 1 : 0)
 
   const handleCheckIn = useCallback((danced: boolean) => {
     setDidDance(danced)
@@ -85,32 +97,92 @@ export function DailyCheckIn({
       // Show points burst animation
       setShowBurst(true)
     } else {
+      // Call API for non-dance check-in
+      if (onCheckIn) {
+        onCheckIn(false).then((result) => {
+          if (result.success && result.newStreak !== undefined) {
+            setActualNewStreak(result.newStreak)
+          }
+        })
+      }
       // Skip to rewards with streak reset message
       const calculatedRewards = calculateCheckInRewards(0, false)
       setRewards(calculatedRewards)
       setStep('rewards')
     }
-  }, [])
+  }, [onCheckIn])
 
   const handleBurstComplete = useCallback(() => {
     setShowBurst(false)
     setStep('reflection')
   }, [])
 
-  const handleReflectionSubmit = useCallback((reflectionData: DanceReflection | null) => {
+  const handleReflectionSubmit = useCallback(async (reflectionData: DanceReflection | null) => {
     setReflection(reflectionData)
     const hasReflection = reflectionData !== null &&
       !!(reflectionData.feeling || (reflectionData.benefits && reflectionData.benefits.length > 0))
-    const calculatedRewards = calculateCheckInRewards(newStreak, hasReflection)
-    setRewards(calculatedRewards)
-    setStep('rewards')
-  }, [newStreak])
 
-  const handleSkipReflection = useCallback(() => {
-    const calculatedRewards = calculateCheckInRewards(newStreak, false)
-    setRewards(calculatedRewards)
+    // Call API with reflection data
+    if (onCheckIn) {
+      // Convert DanceReflection to API format (null -> undefined)
+      const apiReflection = reflectionData ? {
+        feeling: reflectionData.feeling ?? undefined,
+        benefits: reflectionData.benefits ?? undefined,
+        note: reflectionData.notes ?? undefined,
+      } : undefined
+      const result = await onCheckIn(true, apiReflection)
+      if (result.success) {
+        if (result.newStreak !== undefined) {
+          setActualNewStreak(result.newStreak)
+        }
+        // Use API-provided XP if available, otherwise calculate locally
+        if (result.xpEarned !== undefined) {
+          const calculatedRewards = calculateCheckInRewards(result.newStreak || newStreak, hasReflection)
+          // Override with actual API values
+          calculatedRewards.totalXp = result.xpEarned
+          setRewards(calculatedRewards)
+        } else {
+          const calculatedRewards = calculateCheckInRewards(result.newStreak || newStreak, hasReflection)
+          setRewards(calculatedRewards)
+        }
+      } else {
+        // Fall back to local calculation on error
+        const calculatedRewards = calculateCheckInRewards(newStreak, hasReflection)
+        setRewards(calculatedRewards)
+      }
+    } else {
+      const calculatedRewards = calculateCheckInRewards(newStreak, hasReflection)
+      setRewards(calculatedRewards)
+    }
     setStep('rewards')
-  }, [newStreak])
+  }, [newStreak, onCheckIn])
+
+  const handleSkipReflection = useCallback(async () => {
+    // Call API without reflection
+    if (onCheckIn) {
+      const result = await onCheckIn(true)
+      if (result.success) {
+        if (result.newStreak !== undefined) {
+          setActualNewStreak(result.newStreak)
+        }
+        if (result.xpEarned !== undefined) {
+          const calculatedRewards = calculateCheckInRewards(result.newStreak || newStreak, false)
+          calculatedRewards.totalXp = result.xpEarned
+          setRewards(calculatedRewards)
+        } else {
+          const calculatedRewards = calculateCheckInRewards(result.newStreak || newStreak, false)
+          setRewards(calculatedRewards)
+        }
+      } else {
+        const calculatedRewards = calculateCheckInRewards(newStreak, false)
+        setRewards(calculatedRewards)
+      }
+    } else {
+      const calculatedRewards = calculateCheckInRewards(newStreak, false)
+      setRewards(calculatedRewards)
+    }
+    setStep('rewards')
+  }, [newStreak, onCheckIn])
 
   // Already checked in today
   if (hasCheckedInToday) {
