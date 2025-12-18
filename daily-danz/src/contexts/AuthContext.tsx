@@ -94,7 +94,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   try {
     const neynarContext = useNeynarContext()
-    neynarUser = neynarContext.user
+    // Map Neynar user to our type (convert undefined to null)
+    if (neynarContext.user) {
+      neynarUser = {
+        fid: neynarContext.user.fid,
+        username: neynarContext.user.username ?? null,
+        display_name: neynarContext.user.display_name ?? null,
+        pfp_url: neynarContext.user.pfp_url ?? null,
+      }
+    }
     neynarAuthenticated = neynarContext.isAuthenticated
     neynarLogout = neynarContext.logoutUser
   } catch {
